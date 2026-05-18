@@ -1,3 +1,4 @@
+// middleware/upload.js
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -18,7 +19,8 @@ const storage = multer.diskStorage({
         cb(null, uploadDir);
     },
     filename: (req, file, cb) => {
-        const safeName = file.originalname.replace(/\s+/g, "_");
+        // Remove spaces and special characters
+        const safeName = file.originalname.replace(/[^a-zA-Z0-9.]/g, "_");
         const uniqueName = Date.now() + "-" + safeName;
         cb(null, uniqueName);
     },

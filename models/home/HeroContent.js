@@ -1,7 +1,6 @@
 // models/home/HeroContent.js
 import mongoose from "mongoose";
 
-// Single-document model — always one hero config (upsert pattern)
 const heroContentSchema = new mongoose.Schema(
     {
         eyebrow: {
@@ -26,18 +25,18 @@ const heroContentSchema = new mongoose.Schema(
         },
         primaryBtn: {
             label: { type: String, required: true, trim: true },
-            href:  { type: String, required: true, trim: true },
+            href: { type: String, required: true, trim: true },
         },
         secondaryBtn: {
             label: { type: String, required: true, trim: true },
-            href:  { type: String, required: true, trim: true },
+            href: { type: String, required: true, trim: true },
         },
         heroImage: {
             type: String,
             required: [true, "Hero image is required"],
         },
     },
-    { timestamps: true }
+    { timestamps: true },
 );
 
 export default mongoose.model("HomeHeroContent", heroContentSchema);
