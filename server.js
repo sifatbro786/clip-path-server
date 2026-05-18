@@ -14,6 +14,7 @@ import authRoutes from "./routes/auth.js";
 import homeRoutes from "./routes/home.js";
 import pageMetaRoutes from "./routes/pageMeta.js";
 import contactRoutes from "./routes/contact.js";
+import heroRoutes from "./routes/hero.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -49,6 +50,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/home", homeRoutes);
 app.use("/api/page-meta", pageMetaRoutes);
 app.use("/api/contact", contactRoutes);
+app.use("/api/hero", heroRoutes);
 
 // ── Health check ─────────────────────────────────────────────────────────────
 app.get("/api/health", (req, res) => {
