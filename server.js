@@ -12,11 +12,11 @@ import fs from "fs";
 // ── Routes ───────────────────────────────────────────────────────────────────
 import authRoutes from "./routes/auth.js";
 import homeRoutes from "./routes/home.js";
-// future: import servicesRoutes from "./routes/services.js";
-// future: import aboutRoutes    from "./routes/about.js";
+import pageMetaRoutes from "./routes/pageMeta.js";
+import contactRoutes from "./routes/contact.js";
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname  = path.dirname(__filename);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
 const app = express();
@@ -35,7 +35,7 @@ app.use(
             return callback(null, true);
         },
         credentials: true,
-    })
+    }),
 );
 
 const uploadsDir = path.join(__dirname, "uploads");
@@ -47,8 +47,8 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // ── Mount routes ─────────────────────────────────────────────────────────────
 app.use("/api/auth", authRoutes);
 app.use("/api/home", homeRoutes);
-// future: app.use("/api/services", servicesRoutes);
-// future: app.use("/api/about",    aboutRoutes);
+app.use("/api/page-meta", pageMetaRoutes);
+app.use("/api/contact", contactRoutes);
 
 // ── Health check ─────────────────────────────────────────────────────────────
 app.get("/api/health", (req, res) => {
