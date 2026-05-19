@@ -1,3 +1,4 @@
+// config/cloudinary.js
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import multer from "multer";
@@ -22,6 +23,7 @@ function makeStorage(folder) {
     });
 }
 
+// Home page uploads
 export const uploadHeroImage = multer({ storage: makeStorage("home/hero") }).single("image");
 export const uploadCompanyLogos = multer({ storage: makeStorage("home/company") }).array(
     "logos",
@@ -33,8 +35,15 @@ export const uploadDifferenceImages = multer({ storage: makeStorage("home/differ
     { name: "afterImage", maxCount: 1 },
 ]);
 
+// About page uploads
 export const uploadFounderImage = multer({ storage: makeStorage("about/founders") }).single(
     "image",
 );
+
+// Pricing page uploads
+export const uploadSampleImages = multer({ storage: makeStorage("pricing/samples") }).fields([
+    { name: "afterImage", maxCount: 1 },
+    { name: "beforeImage", maxCount: 1 },
+]);
 
 export { cloudinary };

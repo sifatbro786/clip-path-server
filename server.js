@@ -11,6 +11,7 @@ import authRoutes from "./routes/auth.js";
 import pageMetaRoutes from "./routes/pageMeta.js";
 import homeRoutes from "./routes/home.js";
 import aboutRoutes from "./routes/about.js";
+import pricingRoutes from "./routes/pricing.js";
 
 dotenv.config();
 const app = express();
@@ -39,6 +40,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/page-meta", pageMetaRoutes);
 app.use("/api/home", homeRoutes);
 app.use("/api/about", aboutRoutes);
+app.use("/api/pricing", pricingRoutes);
 
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get("/api/health", (req, res) => {
