@@ -3,21 +3,13 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
-import path from "path";
-import { fileURLToPath } from "url";
 import cron from "node-cron";
 import axios from "axios";
-import fs from "fs";
 
-// ── Routes ───────────────────────────────────────────────────────────────────
+// ── Routes ────────────────────────────────────────────────────────────────────
 import authRoutes from "./routes/auth.js";
-import homeRoutes from "./routes/home.js";
 import pageMetaRoutes from "./routes/pageMeta.js";
-import contactRoutes from "./routes/contact.js";
-import heroRoutes from "./routes/hero.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import homeRoutes from "./routes/home.js";
 
 dotenv.config();
 const app = express();
@@ -39,25 +31,19 @@ app.use(
     }),
 );
 
-const uploadsDir = path.join(__dirname, "uploads");
-if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
-
 app.use(express.json());
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// ── Mount routes ─────────────────────────────────────────────────────────────
+// ── Mount routes ──────────────────────────────────────────────────────────────
 app.use("/api/auth", authRoutes);
-app.use("/api/home", homeRoutes);
 app.use("/api/page-meta", pageMetaRoutes);
-app.use("/api/contact", contactRoutes);
-app.use("/api/hero", heroRoutes);
+app.use("/api/home", homeRoutes);
 
-// ── Health check ─────────────────────────────────────────────────────────────
+// ── Health check ──────────────────────────────────────────────────────────────
 app.get("/api/health", (req, res) => {
     res.status(200).json({ status: "OK", uptime: process.uptime(), timestamp: new Date() });
 });
 
-// ── Start server ─────────────────────────────────────────────────────────────
+// ── Start server ──────────────────────────────────────────────────────────────
 const startServer = async () => {
     try {
         await mongoose.connect(process.env.MONGODB_URI);
@@ -74,7 +60,7 @@ const startServer = async () => {
 // ── Cron: keep server alive ───────────────────────────────────────────────────
 cron.schedule("*/10 * * * *", async () => {
     try {
-        const res = await axios.get("http://localhost:5000/api/health");
+        const res = await axios.get(`http://localhost:${process.env.PORT || 5000}/api/health`);
         console.log("Ping success:", res.data.status);
     } catch (error) {
         console.error("Ping failed:", error.message);

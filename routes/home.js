@@ -1,106 +1,539 @@
 // routes/home.js
 import express from "express";
-
-// ── Models ──────────────────────────────────────────────────────────────────
-import Stat from "../models/home/Stat.js";
-import Service from "../models/home/Service.js";
-import DifferenceItem from "../models/home/DifferenceItem.js";
-import PricingPlan from "../models/home/PricingPlan.js";
-import FAQ from "../models/home/FAQ.js";
-import CompanyLogo from "../models/home/CompanyLogo.js";
-
-// ── Controllers ─────────────────────────────────────────────────────────────
-import crudFactory from "../controllers/home/crudFactory.js";
-import { getHero, upsertHero } from "../controllers/home/heroController.js";
-
-// ── Middleware ───────────────────────────────────────────────────────────────
+import Home from "../models/Home.js";
 import { authMiddleware } from "../middleware/auth.js";
-import upload from "../middleware/upload.js";
+import {
+    uploadHeroImage,
+    uploadCompanyLogos,
+    uploadServiceIcon,
+    uploadDifferenceImages,
+} from "../config/cloudinary.js";
 
 const router = express.Router();
 
-const statCtrl = crudFactory(Stat, "Stat", []); // No images
-const serviceCtrl = crudFactory(Service, "Service", "icon"); // Single icon image
-const diffCtrl = crudFactory(DifferenceItem, "DifferenceItem", { images: "array" }); // Array of images (before/after)
-const pricingCtrl = crudFactory(PricingPlan, "PricingPlan", []); // No images
-const faqCtrl = crudFactory(FAQ, "FAQ", []); // No images
-const logoCtrl = crudFactory(CompanyLogo, "CompanyLogo", "src"); // Single logo image
+// ─────────────────────────────────────────────────────────────────────────────
+// HELPER: get or create the single Home document
+// ─────────────────────────────────────────────────────────────────────────────
+async function getHome() {
+    let home = await Home.findOne();
+    if (!home) home = await Home.create({});
+    return home;
+}
 
-// ════════════════════════════════════════════════════════════════════════════
-//  PUBLIC ROUTES — Next.js frontend hits these
-// ════════════════════════════════════════════════════════════════════════════
+// ═════════════════════════════════════════════════════════════════════════════
+// PUBLIC — GET full home data (used by the frontend)
+// GET /api/home
+// ═════════════════════════════════════════════════════════════════════════════
+router.get("/", async (req, res) => {
+    try {
+        const home = await getHome();
+        res.json({ success: true, data: home });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
 
-router.get("/hero", getHero);
+// ═════════════════════════════════════════════════════════════════════════════
+//  HERO SECTION
+// ═════════════════════════════════════════════════════════════════════════════
 
-router.get("/stats", statCtrl.getAll);
-router.get("/stats/:id", statCtrl.getOne);
+/**
+ * PUT /api/home/hero
+ * Body (multipart/form-data):
+ *   image   — file (required when updating image)
+ *   eyebrow — string
+ *   heading — string
+ *   paragraph — string
+ *
+ * Image is ALWAYS uploaded via Cloudinary. If you only want to update text,
+ * omit the `image` field — the existing Cloudinary URL is kept.
+ */
+router.put(
+    "/hero",
+    authMiddleware,
+    (req, res, next) => {
+        uploadHeroImage(req, res, (err) => {
+            if (err) return res.status(400).json({ success: false, error: err.message });
+            next();
+        });
+    },
+    async (req, res) => {
+        try {
+            const home = await getHome();
 
-router.get("/services", serviceCtrl.getAll);
-router.get("/services/:id", serviceCtrl.getOne);
+            const { eyebrow, heading, paragraph } = req.body;
 
-router.get("/differences", diffCtrl.getAll);
-router.get("/differences/:id", diffCtrl.getOne);
+            if (eyebrow !== undefined) home.hero.eyebrow = eyebrow;
+            if (heading !== undefined) home.hero.heading = heading;
+            if (paragraph !== undefined) home.hero.paragraph = paragraph;
 
-router.get("/pricing", pricingCtrl.getAll);
-router.get("/pricing/:id", pricingCtrl.getOne);
+            // Image upload — Cloudinary URL from multer-storage-cloudinary
+            if (req.file) {
+                home.hero.image = req.file.path; // Cloudinary delivers the URL via .path
+            } else if (!home.hero.image) {
+                return res.status(400).json({ success: false, error: "Hero image is required." });
+            }
 
-router.get("/faqs", faqCtrl.getAll);
-router.get("/faqs/:id", faqCtrl.getOne);
+            await home.save();
+            res.json({ success: true, data: home.hero });
+        } catch (err) {
+            res.status(500).json({ success: false, error: err.message });
+        }
+    },
+);
 
-router.get("/logos", logoCtrl.getAll);
-router.get("/logos/:id", logoCtrl.getOne);
+// ═════════════════════════════════════════════════════════════════════════════
+//  COMPANY SECTION
+// ═════════════════════════════════════════════════════════════════════════════
 
-// ════════════════════════════════════════════════════════════════════════════
-//  ADMIN ROUTES — protected, dashboard only
-// ════════════════════════════════════════════════════════════════════════════
+/**
+ * PUT /api/home/company/meta
+ * Body (application/json): { title, heading }
+ */
+router.put("/company/meta", authMiddleware, async (req, res) => {
+    try {
+        const home = await getHome();
+        const { title, heading } = req.body;
 
-// Hero (single-document upsert)
-router.put("/admin/hero", authMiddleware, upload.single("heroImage"), upsertHero);
+        if (title !== undefined) home.company.title = title;
+        if (heading !== undefined) home.company.heading = heading;
 
-// Stats
-router.get("/admin/stats", authMiddleware, statCtrl.getAllAdmin);
-router.post("/admin/stats", authMiddleware, statCtrl.create);
-router.patch("/admin/stats/:id", authMiddleware, statCtrl.update);
-router.delete("/admin/stats/:id", authMiddleware, statCtrl.remove);
+        await home.save();
+        res.json({
+            success: true,
+            data: { title: home.company.title, heading: home.company.heading },
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
 
-// Services - single image upload for 'icon'
-router.get("/admin/services", authMiddleware, serviceCtrl.getAllAdmin);
-router.post("/admin/services", authMiddleware, upload.single("icon"), serviceCtrl.create);
-router.patch("/admin/services/:id", authMiddleware, upload.single("icon"), serviceCtrl.update);
-router.delete("/admin/services/:id", authMiddleware, serviceCtrl.remove);
-
-// Difference items - multiple images (before/after)
-router.get("/admin/differences", authMiddleware, diffCtrl.getAllAdmin);
+/**
+ * POST /api/home/company/logos
+ * Body (multipart/form-data):
+ *   logos[] — files (1–20 images)
+ *
+ * Appends new logos to the existing list.
+ */
 router.post(
-    "/admin/differences",
+    "/company/logos",
     authMiddleware,
-    upload.fields([{ name: "images", maxCount: 2 }]),
-    diffCtrl.create,
+    (req, res, next) => {
+        uploadCompanyLogos(req, res, (err) => {
+            if (err) return res.status(400).json({ success: false, error: err.message });
+            next();
+        });
+    },
+    async (req, res) => {
+        try {
+            if (!req.files || req.files.length === 0) {
+                return res
+                    .status(400)
+                    .json({ success: false, error: "At least one logo image is required." });
+            }
+
+            const home = await getHome();
+            const newLogos = req.files.map((f) => ({ image: f.path }));
+            home.company.logos.push(...newLogos);
+
+            await home.save();
+            res.json({ success: true, data: home.company.logos });
+        } catch (err) {
+            res.status(500).json({ success: false, error: err.message });
+        }
+    },
 );
-router.patch(
-    "/admin/differences/:id",
+
+/**
+ * DELETE /api/home/company/logos/:logoId
+ * Removes a single logo by its _id.
+ */
+router.delete("/company/logos/:logoId", authMiddleware, async (req, res) => {
+    try {
+        const home = await getHome();
+        const before = home.company.logos.length;
+        home.company.logos = home.company.logos.filter(
+            (l) => l._id.toString() !== req.params.logoId,
+        );
+
+        if (home.company.logos.length === before) {
+            return res.status(404).json({ success: false, error: "Logo not found." });
+        }
+
+        await home.save();
+        res.json({ success: true, data: home.company.logos });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  SERVICES SECTION
+// ═════════════════════════════════════════════════════════════════════════════
+
+/**
+ * PUT /api/home/services/meta
+ * Body (application/json): { sectionTitle, sectionHeading }
+ */
+router.put("/services/meta", authMiddleware, async (req, res) => {
+    try {
+        const home = await getHome();
+        const { sectionTitle, sectionHeading } = req.body;
+
+        if (sectionTitle !== undefined) home.services.sectionTitle = sectionTitle;
+        if (sectionHeading !== undefined) home.services.sectionHeading = sectionHeading;
+
+        await home.save();
+        res.json({
+            success: true,
+            data: {
+                sectionTitle: home.services.sectionTitle,
+                sectionHeading: home.services.sectionHeading,
+            },
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+/**
+ * POST /api/home/services
+ * Body (multipart/form-data):
+ *   icon        — file (required)
+ *   title       — string (required)
+ *   description — string (required)
+ */
+router.post(
+    "/services",
     authMiddleware,
-    upload.fields([{ name: "images", maxCount: 2 }]),
-    diffCtrl.update,
+    (req, res, next) => {
+        uploadServiceIcon(req, res, (err) => {
+            if (err) return res.status(400).json({ success: false, error: err.message });
+            next();
+        });
+    },
+    async (req, res) => {
+        try {
+            const { title, description } = req.body;
+
+            if (!title || !description) {
+                return res
+                    .status(400)
+                    .json({ success: false, error: "title and description are required." });
+            }
+            if (!req.file) {
+                return res
+                    .status(400)
+                    .json({ success: false, error: "Service icon image is required." });
+            }
+
+            const home = await getHome();
+            home.services.items.push({ title, description, icon: req.file.path });
+
+            await home.save();
+            res.status(201).json({ success: true, data: home.services.items });
+        } catch (err) {
+            res.status(500).json({ success: false, error: err.message });
+        }
+    },
 );
-router.delete("/admin/differences/:id", authMiddleware, diffCtrl.remove);
 
-// Pricing plans
-router.get("/admin/pricing", authMiddleware, pricingCtrl.getAllAdmin);
-router.post("/admin/pricing", authMiddleware, pricingCtrl.create);
-router.patch("/admin/pricing/:id", authMiddleware, pricingCtrl.update);
-router.delete("/admin/pricing/:id", authMiddleware, pricingCtrl.remove);
+/**
+ * PUT /api/home/services/:serviceId
+ * Body (multipart/form-data):
+ *   icon        — file (optional — only send if changing the icon)
+ *   title       — string
+ *   description — string
+ */
+router.put(
+    "/services/:serviceId",
+    authMiddleware,
+    (req, res, next) => {
+        uploadServiceIcon(req, res, (err) => {
+            if (err) return res.status(400).json({ success: false, error: err.message });
+            next();
+        });
+    },
+    async (req, res) => {
+        try {
+            const home = await getHome();
+            const item = home.services.items.id(req.params.serviceId);
 
-// FAQs
-router.get("/admin/faqs", authMiddleware, faqCtrl.getAllAdmin);
-router.post("/admin/faqs", authMiddleware, faqCtrl.create);
-router.patch("/admin/faqs/:id", authMiddleware, faqCtrl.update);
-router.delete("/admin/faqs/:id", authMiddleware, faqCtrl.remove);
+            if (!item)
+                return res.status(404).json({ success: false, error: "Service item not found." });
 
-// Company logos - single image upload for 'src'
-router.get("/admin/logos", authMiddleware, logoCtrl.getAllAdmin);
-router.post("/admin/logos", authMiddleware, upload.single("src"), logoCtrl.create);
-router.patch("/admin/logos/:id", authMiddleware, upload.single("src"), logoCtrl.update);
-router.delete("/admin/logos/:id", authMiddleware, logoCtrl.remove);
+            const { title, description } = req.body;
+            if (title !== undefined) item.title = title;
+            if (description !== undefined) item.description = description;
+            if (req.file) item.icon = req.file.path;
+
+            await home.save();
+            res.json({ success: true, data: home.services.items });
+        } catch (err) {
+            res.status(500).json({ success: false, error: err.message });
+        }
+    },
+);
+
+/**
+ * DELETE /api/home/services/:serviceId
+ */
+router.delete("/services/:serviceId", authMiddleware, async (req, res) => {
+    try {
+        const home = await getHome();
+        const before = home.services.items.length;
+        home.services.items = home.services.items.filter(
+            (s) => s._id.toString() !== req.params.serviceId,
+        );
+
+        if (home.services.items.length === before) {
+            return res.status(404).json({ success: false, error: "Service item not found." });
+        }
+
+        await home.save();
+        res.json({ success: true, data: home.services.items });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  DIFFERENCE SECTION
+// ═════════════════════════════════════════════════════════════════════════════
+
+/**
+ * PUT /api/home/difference/meta
+ * Body (application/json): { sectionTitle, sectionHeading }
+ */
+router.put("/difference/meta", authMiddleware, async (req, res) => {
+    try {
+        const home = await getHome();
+        const { sectionTitle, sectionHeading } = req.body;
+
+        if (sectionTitle !== undefined) home.difference.sectionTitle = sectionTitle;
+        if (sectionHeading !== undefined) home.difference.sectionHeading = sectionHeading;
+
+        await home.save();
+        res.json({
+            success: true,
+            data: {
+                sectionTitle: home.difference.sectionTitle,
+                sectionHeading: home.difference.sectionHeading,
+            },
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+/**
+ * POST /api/home/difference
+ * Body (multipart/form-data):
+ *   beforeImage — file (required)
+ *   afterImage  — file (required)
+ *   title       — string (required)
+ *   description — string (required)
+ *   builtFor    — JSON array string, e.g. '["eCommerce","Brands"]'
+ *   left        — boolean string ("true" | "false")
+ */
+router.post(
+    "/difference",
+    authMiddleware,
+    (req, res, next) => {
+        uploadDifferenceImages(req, res, (err) => {
+            if (err) return res.status(400).json({ success: false, error: err.message });
+            next();
+        });
+    },
+    async (req, res) => {
+        try {
+            const { title, description, builtFor, left } = req.body;
+
+            if (!title || !description) {
+                return res
+                    .status(400)
+                    .json({ success: false, error: "title and description are required." });
+            }
+            if (!req.files?.beforeImage?.[0] || !req.files?.afterImage?.[0]) {
+                return res.status(400).json({
+                    success: false,
+                    error: "Both beforeImage and afterImage are required.",
+                });
+            }
+
+            const home = await getHome();
+            home.difference.items.push({
+                title,
+                description,
+                builtFor: builtFor ? JSON.parse(builtFor) : [],
+                left: left !== undefined ? left === "true" : true,
+                beforeImage: req.files.beforeImage[0].path,
+                afterImage: req.files.afterImage[0].path,
+            });
+
+            await home.save();
+            res.status(201).json({ success: true, data: home.difference.items });
+        } catch (err) {
+            res.status(500).json({ success: false, error: err.message });
+        }
+    },
+);
+
+/**
+ * PUT /api/home/difference/:itemId
+ * Body (multipart/form-data):
+ *   beforeImage — file (optional)
+ *   afterImage  — file (optional)
+ *   title, description, builtFor, left — all optional
+ */
+router.put(
+    "/difference/:itemId",
+    authMiddleware,
+    (req, res, next) => {
+        uploadDifferenceImages(req, res, (err) => {
+            if (err) return res.status(400).json({ success: false, error: err.message });
+            next();
+        });
+    },
+    async (req, res) => {
+        try {
+            const home = await getHome();
+            const item = home.difference.items.id(req.params.itemId);
+
+            if (!item)
+                return res
+                    .status(404)
+                    .json({ success: false, error: "Difference item not found." });
+
+            const { title, description, builtFor, left } = req.body;
+            if (title !== undefined) item.title = title;
+            if (description !== undefined) item.description = description;
+            if (builtFor !== undefined) item.builtFor = JSON.parse(builtFor);
+            if (left !== undefined) item.left = left === "true";
+
+            if (req.files?.beforeImage?.[0]) item.beforeImage = req.files.beforeImage[0].path;
+            if (req.files?.afterImage?.[0]) item.afterImage = req.files.afterImage[0].path;
+
+            await home.save();
+            res.json({ success: true, data: home.difference.items });
+        } catch (err) {
+            res.status(500).json({ success: false, error: err.message });
+        }
+    },
+);
+
+/**
+ * DELETE /api/home/difference/:itemId
+ */
+router.delete("/difference/:itemId", authMiddleware, async (req, res) => {
+    try {
+        const home = await getHome();
+        const before = home.difference.items.length;
+        home.difference.items = home.difference.items.filter(
+            (d) => d._id.toString() !== req.params.itemId,
+        );
+
+        if (home.difference.items.length === before) {
+            return res.status(404).json({ success: false, error: "Difference item not found." });
+        }
+
+        await home.save();
+        res.json({ success: true, data: home.difference.items });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  FAQ SECTION
+// ═════════════════════════════════════════════════════════════════════════════
+
+/**
+ * PUT /api/home/faq/meta
+ * Body (application/json): { sectionTitle, sectionHeading }
+ */
+router.put("/faq/meta", authMiddleware, async (req, res) => {
+    try {
+        const home = await getHome();
+        const { sectionTitle, sectionHeading } = req.body;
+
+        if (sectionTitle !== undefined) home.faq.sectionTitle = sectionTitle;
+        if (sectionHeading !== undefined) home.faq.sectionHeading = sectionHeading;
+
+        await home.save();
+        res.json({
+            success: true,
+            data: { sectionTitle: home.faq.sectionTitle, sectionHeading: home.faq.sectionHeading },
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+/**
+ * POST /api/home/faq
+ * Body (application/json): { question, answer }
+ */
+router.post("/faq", authMiddleware, async (req, res) => {
+    try {
+        const { question, answer } = req.body;
+
+        if (!question || !answer) {
+            return res
+                .status(400)
+                .json({ success: false, error: "question and answer are required." });
+        }
+
+        const home = await getHome();
+        home.faq.items.push({ question, answer });
+
+        await home.save();
+        res.status(201).json({ success: true, data: home.faq.items });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+/**
+ * PUT /api/home/faq/:faqId
+ * Body (application/json): { question, answer }
+ */
+router.put("/faq/:faqId", authMiddleware, async (req, res) => {
+    try {
+        const home = await getHome();
+        const item = home.faq.items.id(req.params.faqId);
+
+        if (!item) return res.status(404).json({ success: false, error: "FAQ item not found." });
+
+        const { question, answer } = req.body;
+        if (question !== undefined) item.question = question;
+        if (answer !== undefined) item.answer = answer;
+
+        await home.save();
+        res.json({ success: true, data: home.faq.items });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+/**
+ * DELETE /api/home/faq/:faqId
+ */
+router.delete("/faq/:faqId", authMiddleware, async (req, res) => {
+    try {
+        const home = await getHome();
+        const before = home.faq.items.length;
+        home.faq.items = home.faq.items.filter((f) => f._id.toString() !== req.params.faqId);
+
+        if (home.faq.items.length === before) {
+            return res.status(404).json({ success: false, error: "FAQ item not found." });
+        }
+
+        await home.save();
+        res.json({ success: true, data: home.faq.items });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
 
 export default router;
