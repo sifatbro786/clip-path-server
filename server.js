@@ -10,6 +10,7 @@ import axios from "axios";
 import authRoutes from "./routes/auth.js";
 import pageMetaRoutes from "./routes/pageMeta.js";
 import homeRoutes from "./routes/home.js";
+import aboutRoutes from "./routes/about.js";
 
 dotenv.config();
 const app = express();
@@ -37,6 +38,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/page-meta", pageMetaRoutes);
 app.use("/api/home", homeRoutes);
+app.use("/api/about", aboutRoutes);
 
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get("/api/health", (req, res) => {

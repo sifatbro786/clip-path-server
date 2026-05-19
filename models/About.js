@@ -117,10 +117,65 @@ const aboutSchema = new mongoose.Schema(
 );
 
 // Ensure only one document exists (singleton pattern)
+// Replace the getSingleton method in your About.js
 aboutSchema.statics.getSingleton = async function () {
     let about = await this.findOne();
     if (!about) {
-        about = await this.create({});
+        // Create a new document with all required fields
+        about = await this.create({
+            hero: {
+                establishmentYear: "2014",
+                location: "Dhaka, Bangladesh",
+                headline: "Built By Craftsmen. Made For The World.",
+                highlightedText: "The World.",
+                description:
+                    "Rapid Clipping Path is a photo editing studio led by a senior Photoshop expert with seventeen years of professional craft, partnered with an entrepreneur educated across the UK and the US. We deliver hand-edited image work to over four thousand brands, in more than thirty countries.",
+            },
+            ourStory: {
+                title: "Fifteen years of craft, brought into focus.",
+                description:
+                    "The story of Rapid Clipping Path spans over a decade of dedicated craftsmanship and strategic growth.",
+                paragraphs: [
+                    "Rapid Clipping Path traces its roots to 2010, when Razon Roy began his career as a junior graphic designer at Metro Desk Studio in Dhaka. By 2013 he had been promoted to senior, and shortly after left to build an independent practice — working with international clients through Fiverr and Upwork.",
+                    "By 2015, Razon was a Top Rated provider on both marketplaces, a status he has held continuously since. Over the years that followed, he completed more than 4,500 client projects, earning a 4.8-star rating across 2,300+ verified reviews.",
+                ],
+                blockquote: {
+                    text: "In 2024, the studio became something more — a partnership built around a shared belief that craft, when paired with strategy, scales without losing its character.",
+                    author: "Razon Roy & Fizz Rahman",
+                },
+            },
+            chooseSection: {
+                badge: "BY THE NUMBERS",
+                heading: "A studio measured in detail, not declarations.",
+                stats: [],
+            },
+            workSection: {
+                badge: "HOW WE WORK",
+                heading: "Four principles. Held since 2014.",
+                highlightedText: "principles",
+                principles: [],
+            },
+            whereWeWork: {
+                badge: "WHERE WE WORK",
+                heading: "From Dhaka, for the world.",
+                highlightedText: "Dhaka",
+                description:
+                    "A Dhaka-based studio with business operations registered in the United States — combining low-cost production with global service standards across all major time zones.",
+                locations: [],
+            },
+            quote: {
+                text: "We grow this business one image and one relationship at a time. Some of our clients have worked with us for over eight years. That's the standard we measure ourselves against.",
+                author: "RAZON ROY & FIZZ RAHMAN, CO-FOUNDERS",
+            },
+            founders: {
+                title: "The founders",
+                headingPrefix: "Two backgrounds. One ",
+                headingHighlighted: "studio.",
+                paragraph:
+                    "A senior craftsman and a returning entrepreneur, building a photo editing studio shaped by both.",
+                foundersList: [],
+            },
+        });
     }
     return about;
 };
