@@ -16,7 +16,38 @@ const router = express.Router();
 // ─────────────────────────────────────────────────────────────────────────────
 async function getHome() {
     let home = await Home.findOne();
-    if (!home) home = await Home.create({});
+    
+    if (!home) {
+        home = await Home.create({
+            hero: {
+                eyebrow: "Book a free 30-minute call",
+                heading: "Professional Photo Editing Services for eCommerce & Brands",
+                paragraph: "",
+                image: "https://via.placeholder.com/1000x1000" 
+            },
+            company: {
+                title: "Trusted by 4,000+ brands across 32 countries",
+                heading: "Edits That Sell. Delivered While You Sleep",
+                logos: []
+            },
+            services: {
+                sectionTitle: "Our Professional Services",
+                sectionHeading: "We provide a wide range of photo editing services tailored for your business needs",
+                items: []
+            },
+            difference: {
+                sectionTitle: "See the Difference",
+                sectionHeading: "Compare before and after results of our professional editing services",
+                items: []
+            },
+            faq: {
+                sectionTitle: "Common questions",
+                sectionHeading: "A few things people ask.",
+                items: []
+            }
+        });
+    }
+    
     return home;
 }
 
