@@ -6,24 +6,21 @@ import mongoose from "mongoose";
 const heroSchema = new mongoose.Schema(
     {
         eyebrow: { type: String, default: "Book a free 30-minute call" },
-        heading: {
-            type: String,
-            default: "Professional Photo Editing Services for eCommerce & Brands",
-        },
+        headingPrimary: { type: String, default: "Professional Photo Editing Services for" },
+        headingHighlight: { type: String, default: "eCommerce & Brands" },
         paragraph: { type: String, default: "" },
-        image: { type: String, required: true }, // Cloudinary URL — always uploaded
+        image: { type: String, required: true }, // Cloudinary URL
     },
     { _id: false },
 );
 
 const companySchema = new mongoose.Schema(
     {
-        title: { type: String, default: "Trusted by 4,000+ brands across 32 countries" },
-        heading: { type: String, default: "Edits That Sell. Delivered While You Sleep" },
+        eyebrow: { type: String, default: "Trusted by 4,000+ brands across 32 countries" },
+        headingPrimary: { type: String, default: "Edits That Sell. Delivered While" },
+        headingHighlight: { type: String, default: "You Sleep" },
         logos: [
-            {
-                image: { type: String, required: true }, // Cloudinary URL — always uploaded
-            },
+            { image: { type: String, required: true } }, // Cloudinary URL
         ],
     },
     { _id: false },
@@ -32,17 +29,17 @@ const companySchema = new mongoose.Schema(
 const serviceItemSchema = new mongoose.Schema({
     title: { type: String, required: true },
     description: { type: String, required: true },
-    icon: { type: String, required: true }, // Cloudinary URL — always uploaded
+    icon: { type: String, required: true }, // Cloudinary URL
 });
 
 const servicesSchema = new mongoose.Schema(
     {
-        sectionTitle: { type: String, default: "Our Professional Services" },
-        sectionHeading: {
+        eyebrow: { type: String, default: "Our Professional Services" },
+        headingPrimary: {
             type: String,
-            default:
-                "We provide a wide range of photo editing services tailored for your business needs",
+            default: "We provide a wide range of photo editing services tailored for",
         },
+        headingHighlight: { type: String, default: "your business needs" },
         items: [serviceItemSchema],
     },
     { _id: false },
@@ -52,18 +49,19 @@ const differenceItemSchema = new mongoose.Schema({
     title: { type: String, required: true },
     description: { type: String, required: true },
     builtFor: [{ type: String }],
-    beforeImage: { type: String, required: true }, // Cloudinary URL — always uploaded
-    afterImage: { type: String, required: true }, // Cloudinary URL — always uploaded
+    beforeImage: { type: String, required: true }, // Cloudinary URL
+    afterImage: { type: String, required: true }, // Cloudinary URL
     left: { type: Boolean, default: true },
 });
 
 const differenceSchema = new mongoose.Schema(
     {
-        sectionTitle: { type: String, default: "See the Difference" },
-        sectionHeading: {
+        eyebrow: { type: String, default: "See the Difference" },
+        headingPrimary: {
             type: String,
-            default: "Compare before and after results of our professional editing services",
+            default: "Compare before and after results of our professional",
         },
+        headingHighlight: { type: String, default: "editing services" },
         items: [differenceItemSchema],
     },
     { _id: false },
@@ -76,8 +74,9 @@ const faqItemSchema = new mongoose.Schema({
 
 const faqSchema = new mongoose.Schema(
     {
-        sectionTitle: { type: String, default: "Common questions" },
-        sectionHeading: { type: String, default: "A few things people ask." },
+        eyebrow: { type: String, default: "Common questions" },
+        headingPrimary: { type: String, default: "A few things" },
+        headingHighlight: { type: String, default: "people ask." },
         items: [faqItemSchema],
     },
     { _id: false },

@@ -64,7 +64,7 @@ const startServer = async () => {
 // ── Cron: keep server alive ───────────────────────────────────────────────────
 cron.schedule("*/10 * * * *", async () => {
     try {
-        const res = await axios.get(`http://localhost:${process.env.PORT || 5000}/api/health`);
+        const res = await axios.get(`https://clip-path-server.onrender.com/api/health`);
         console.log("Ping success:", res.data.status);
     } catch (error) {
         console.error("Ping failed:", error.message);
