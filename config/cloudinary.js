@@ -49,4 +49,7 @@ export const uploadSampleImages = multer({ storage: makeStorage("pricing/samples
 // Portfolio page uploads
 export const uploadPortfolioImage = multer({ storage: makeStorage("portfolio") }).single("image");
 
+// Booking page uploads
+export const uploadBookingImage = multer({ storage: makeStorage("booking") }).single("image");
+
 export { cloudinary };
