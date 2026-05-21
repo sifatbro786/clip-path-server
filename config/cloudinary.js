@@ -46,4 +46,7 @@ export const uploadSampleImages = multer({ storage: makeStorage("pricing/samples
     { name: "beforeImage", maxCount: 1 },
 ]);
 
+// Portfolio page uploads
+export const uploadPortfolioImage = multer({ storage: makeStorage("portfolio") }).single("image");
+
 export { cloudinary };

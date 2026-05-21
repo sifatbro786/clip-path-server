@@ -12,6 +12,7 @@ import pageMetaRoutes from "./routes/pageMeta.js";
 import homeRoutes from "./routes/home.js";
 import aboutRoutes from "./routes/about.js";
 import pricingRoutes from "./routes/pricing.js";
+import portfolioRoutes from "./routes/portfolio.js";
 
 dotenv.config();
 const app = express();
@@ -41,6 +42,7 @@ app.use("/api/page-meta", pageMetaRoutes);
 app.use("/api/home", homeRoutes);
 app.use("/api/about", aboutRoutes);
 app.use("/api/pricing", pricingRoutes);
+app.use("/api/portfolio", portfolioRoutes);
 
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get("/api/health", (req, res) => {

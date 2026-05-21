@@ -256,21 +256,33 @@ export const addLocation = async (req, res) => {
         const { type, title, address, hoursOrPhone, note, order } = req.body;
         const about = await About.getSingleton();
 
+        // Check required fields
+        if (!type || !title || !address || !hoursOrPhone) {
+            return res.status(400).json({
+                success: false,
+                error: "Type, title, address, and hoursOrPhone are required fields",
+            });
+        }
+
         const newLocation = {
             type,
             title,
             address,
             hoursOrPhone,
             note: note || "",
-            order: order || about.whereWeWork.locations.length,
+            order: order !== undefined ? order : about.whereWeWork.locations.length,
         };
 
         about.whereWeWork.locations.push(newLocation);
         about.lastUpdatedBy = req.adminId || "admin";
         await about.save();
 
-        res.status(201).json({ success: true, data: newLocation });
+        // Return the newly added location
+        const savedLocation = about.whereWeWork.locations[about.whereWeWork.locations.length - 1];
+
+        res.status(201).json({ success: true, data: savedLocation });
     } catch (error) {
+        console.error("Error adding location:", error);
         res.status(500).json({ success: false, error: error.message });
     }
 };
@@ -298,6 +310,7 @@ export const updateLocation = async (req, res) => {
 
         res.status(200).json({ success: true, data: location });
     } catch (error) {
+        console.error("Error updating location:", error);
         res.status(500).json({ success: false, error: error.message });
     }
 };
