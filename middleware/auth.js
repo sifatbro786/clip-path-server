@@ -1,7 +1,8 @@
+// middleware/auth.js
 import jwt from "jsonwebtoken";
 import Admin from "../models/Admin.js";
 
-const authMiddleware = (req, res, next) => {
+export const authMiddleware = (req, res, next) => {
     const token = req.header("Authorization")?.replace("Bearer ", "");
 
     if (!token) {
@@ -21,7 +22,7 @@ const authMiddleware = (req, res, next) => {
     }
 };
 
-const requireSuperAdmin = async (req, res, next) => {
+export const requireSuperAdmin = async (req, res, next) => {
     try {
         const admin = await Admin.findById(req.adminId);
         if (!admin || admin.role !== "super_admin") {
@@ -34,5 +35,3 @@ const requireSuperAdmin = async (req, res, next) => {
         res.status(500).json({ error: error.message });
     }
 };
-
-export { authMiddleware, requireSuperAdmin };

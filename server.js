@@ -3,8 +3,6 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
-import cron from "node-cron";
-import axios from "axios";
 
 // ── Routes ────────────────────────────────────────────────────────────────────
 import authRoutes from "./routes/auth.js";
@@ -14,6 +12,7 @@ import aboutRoutes from "./routes/about.js";
 import pricingRoutes from "./routes/pricing.js";
 import portfolioRoutes from "./routes/portfolio.js";
 import bookingRoutes from "./routes/booking.js";
+import contactRoutes from "./routes/contact.js";
 
 dotenv.config();
 const app = express();
@@ -45,6 +44,7 @@ app.use("/api/about", aboutRoutes);
 app.use("/api/pricing", pricingRoutes);
 app.use("/api/portfolio", portfolioRoutes);
 app.use("/api/booking", bookingRoutes);
+app.use("/api/contact", contactRoutes);
 
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get("/api/health", (req, res) => {
@@ -64,15 +64,5 @@ const startServer = async () => {
         process.exit(1);
     }
 };
-
-// ── Cron: keep server alive ───────────────────────────────────────────────────
-cron.schedule("*/10 * * * *", async () => {
-    try {
-        const res = await axios.get(`https://clip-path-server.onrender.com/api/health`);
-        console.log("Ping success:", res.data.status);
-    } catch (error) {
-        console.error("Ping failed:", error.message);
-    }
-});
 
 startServer();
