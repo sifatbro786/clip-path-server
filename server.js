@@ -13,6 +13,8 @@ import pricingRoutes from "./routes/pricing.js";
 import portfolioRoutes from "./routes/portfolio.js";
 import bookingRoutes from "./routes/booking.js";
 import contactRoutes from "./routes/contact.js";
+import servicesPageRoutes from "./routes/servicesPage.js"; // /services page (single doc)
+import serviceRoutes from "./routes/services.js"; // /services (collection)
 
 dotenv.config();
 const app = express();
@@ -45,6 +47,8 @@ app.use("/api/pricing", pricingRoutes);
 app.use("/api/portfolio", portfolioRoutes);
 app.use("/api/booking", bookingRoutes);
 app.use("/api/contact", contactRoutes);
+app.use("/api/services-page", servicesPageRoutes); // ServicesPage model
+app.use("/api/services", serviceRoutes);
 
 // ── Health check ──────────────────────────────────────────────────────────────
 app.get("/api/health", (req, res) => {

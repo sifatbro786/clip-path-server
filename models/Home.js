@@ -26,47 +26,6 @@ const companySchema = new mongoose.Schema(
     { _id: false },
 );
 
-const serviceItemSchema = new mongoose.Schema({
-    title: { type: String, required: true },
-    description: { type: String, required: true },
-    icon: { type: String, required: true }, // Cloudinary URL
-});
-
-const servicesSchema = new mongoose.Schema(
-    {
-        eyebrow: { type: String, default: "Our Professional Services" },
-        headingPrimary: {
-            type: String,
-            default: "We provide a wide range of photo editing services tailored for",
-        },
-        headingHighlight: { type: String, default: "your business needs" },
-        items: [serviceItemSchema],
-    },
-    { _id: false },
-);
-
-const differenceItemSchema = new mongoose.Schema({
-    title: { type: String, required: true },
-    description: { type: String, required: true },
-    builtFor: [{ type: String }],
-    beforeImage: { type: String, required: true }, // Cloudinary URL
-    afterImage: { type: String, required: true }, // Cloudinary URL
-    left: { type: Boolean, default: true },
-});
-
-const differenceSchema = new mongoose.Schema(
-    {
-        eyebrow: { type: String, default: "See the Difference" },
-        headingPrimary: {
-            type: String,
-            default: "Compare before and after results of our professional",
-        },
-        headingHighlight: { type: String, default: "editing services" },
-        items: [differenceItemSchema],
-    },
-    { _id: false },
-);
-
 const faqItemSchema = new mongoose.Schema({
     question: { type: String, required: true },
     answer: { type: String, required: true },
@@ -88,8 +47,6 @@ const homeSchema = new mongoose.Schema(
     {
         hero: heroSchema,
         company: companySchema,
-        services: servicesSchema,
-        difference: differenceSchema,
         faq: faqSchema,
     },
     { timestamps: true },

@@ -4,8 +4,6 @@ import { authMiddleware } from "../middleware/auth.js";
 import {
     uploadHeroImage,
     uploadCompanyLogos,
-    uploadServiceIcon,
-    uploadDifferenceImages,
 } from "../config/cloudinary.js";
 import {
     getHomeData,
@@ -13,14 +11,6 @@ import {
     updateCompanyMeta,
     addCompanyLogos,
     deleteCompanyLogo,
-    updateServicesMeta,
-    addService,
-    updateService,
-    deleteService,
-    updateDifferenceMeta,
-    addDifferenceItem,
-    updateDifferenceItem,
-    deleteDifferenceItem,
     updateFaqMeta,
     addFaq,
     updateFaq,
@@ -52,27 +42,6 @@ router.put("/hero", authMiddleware, withUpload(uploadHeroImage), updateHero);
 router.put("/company/meta", authMiddleware, updateCompanyMeta);
 router.post("/company/logos", authMiddleware, withUpload(uploadCompanyLogos), addCompanyLogos);
 router.delete("/company/logos/:logoId", authMiddleware, deleteCompanyLogo);
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  SERVICES
-// ─────────────────────────────────────────────────────────────────────────────
-router.put("/services/meta", authMiddleware, updateServicesMeta);
-router.post("/services", authMiddleware, withUpload(uploadServiceIcon), addService);
-router.put("/services/:serviceId", authMiddleware, withUpload(uploadServiceIcon), updateService);
-router.delete("/services/:serviceId", authMiddleware, deleteService);
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  DIFFERENCE
-// ─────────────────────────────────────────────────────────────────────────────
-router.put("/difference/meta", authMiddleware, updateDifferenceMeta);
-router.post("/difference", authMiddleware, withUpload(uploadDifferenceImages), addDifferenceItem);
-router.put(
-    "/difference/:itemId",
-    authMiddleware,
-    withUpload(uploadDifferenceImages),
-    updateDifferenceItem,
-);
-router.delete("/difference/:itemId", authMiddleware, deleteDifferenceItem);
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  FAQ

@@ -1,4 +1,3 @@
-// config/cloudinary.js
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import multer from "multer";
@@ -23,33 +22,74 @@ function makeStorage(folder) {
     });
 }
 
-// Home page uploads
+// ============================================
+// HOME PAGE UPLOADS (Keep existing)
+// ============================================
 export const uploadHeroImage = multer({ storage: makeStorage("home/hero") }).single("image");
 export const uploadCompanyLogos = multer({ storage: makeStorage("home/company") }).array(
     "logos",
     20,
 );
 export const uploadServiceIcon = multer({ storage: makeStorage("home/services") }).single("icon");
-export const uploadDifferenceImages = multer({ storage: makeStorage("home/difference") }).fields([
-    { name: "beforeImage", maxCount: 1 },
-    { name: "afterImage", maxCount: 1 },
-]);
 
-// About page uploads
+// ============================================
+// ABOUT PAGE UPLOADS
+// ============================================
 export const uploadFounderImage = multer({ storage: makeStorage("about/founders") }).single(
     "image",
 );
 
-// Pricing page uploads
+// ============================================
+// PRICING PAGE UPLOADS
+// ============================================
 export const uploadSampleImages = multer({ storage: makeStorage("pricing/samples") }).fields([
     { name: "afterImage", maxCount: 1 },
     { name: "beforeImage", maxCount: 1 },
 ]);
 
-// Portfolio page uploads
+// ============================================
+// PORTFOLIO PAGE UPLOADS
+// ============================================
 export const uploadPortfolioImage = multer({ storage: makeStorage("portfolio") }).single("image");
 
-// Booking page uploads
+// ============================================
+// BOOKING PAGE UPLOADS
+// ============================================
 export const uploadBookingImage = multer({ storage: makeStorage("booking") }).single("image");
+
+// ============================================
+// SERVICE PAGE UPLOADS
+// ============================================
+
+// Service Card Image
+export const uploadServiceCardImage = multer({
+    storage: makeStorage("services/cards"),
+}).single("cardImage");
+
+// Service Hero Background
+export const uploadServiceBackgroundImage = multer({
+    storage: makeStorage("services/hero"),
+}).single("backgroundImage");
+
+// Service Sample Images (before/after)
+export const uploadServiceSampleImages = multer({
+    storage: makeStorage("services/samples"),
+}).fields([
+    { name: "beforeImage", maxCount: 1 },
+    { name: "afterImage", maxCount: 1 },
+]);
+
+// Retoucher Image
+export const uploadRetoucherImage = multer({
+    storage: makeStorage("services/retoucher"),
+}).single("image");
+
+// Difference Section Images
+export const uploadDifferenceImages = multer({
+    storage: makeStorage("services/difference"),
+}).fields([
+    { name: "beforeImage", maxCount: 1 },
+    { name: "afterImage", maxCount: 1 },
+]);
 
 export { cloudinary };
